@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { FlatList, Alert, TextInput } from "react-native"
-import { useRoute } from "@react-navigation/native"
+import { useNavigation, useRoute } from "@react-navigation/native"
 
 import { Header } from "@components/Header"
 import { Highlight } from "@components/Highlight"
@@ -16,6 +16,8 @@ import { AppError } from "@utils/AppError"
 import { PlayerStorageDTO } from "@storage/player/PlayerStorageDTO"
 import { playerAddByGroup } from "@storage/player/playerAddByGroup"
 import { playersGetByGroupAndTeam } from "@storage/player/playersGetByGroupAndTeam"
+import { playerRemoveByGroup } from "@storage/player/playerRemoveByGroup"
+import { groupRemoveByName } from "@storage/group/groupRemoveByName"
 
 import { Container, Form, ListHeader, PlayersCount } from "./styles"
 
@@ -30,10 +32,44 @@ export function Players() {
   const newPlayerNameInputRef = useRef<TextInput>(null)
 
   const route = useRoute()
+  const { navigate } = useNavigation()
+
   const { group } = route.params as RouteParams
 
-  function handlePlayerRemove(player: string) {
-    setPlayers((prevState) => prevState.filter((item) => item.name !== player))
+  async function removeGroup() {
+    try {
+      await groupRemoveByName(group)
+      navigate("groups")
+    } catch (error) {
+      Alert.alert("Remover grupo", "Houve um erro ao remover o grupo.")
+
+      console.log(error)
+    }
+  }
+
+  async function handleGroupRemove() {
+    Alert.alert("Remover grupo", "Tem certeza que deseja remover o grupo?", [
+      {
+        text: "Sim",
+        style: "default",
+        onPress: () => removeGroup(),
+      },
+      {
+        text: "Não",
+        style: "cancel",
+      },
+    ])
+  }
+
+  async function handlePlayerRemove(playerName: string) {
+    try {
+      await playerRemoveByGroup(playerName, group)
+      fetchPlayersByTeam()
+    } catch (error) {
+      Alert.alert("Remover jogador(a)", "Não foi possível remover essa pessoa.")
+
+      console.log(error)
+    }
   }
 
   async function handleAddPlayer() {
@@ -141,7 +177,11 @@ export function Players() {
         )}
       />
 
-      <Button title="Remover turma" type="SECONDARY" />
+      <Button
+        title="Remover turma"
+        type="SECONDARY"
+        onPress={handleGroupRemove}
+      />
     </Container>
   )
 }
