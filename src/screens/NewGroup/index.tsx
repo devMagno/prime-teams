@@ -19,15 +19,15 @@ export function NewGroup() {
 
   async function handleCreateNewGroup() {
     if (!group.trim())
-      return Alert.alert("Novo Grupo", "Informe o nome da turma.")
+      return Alert.alert("Nova Turma", "Informe o nome da turma.")
 
     try {
       await groupCreate(group)
       navigate("players", { group })
     } catch (error) {
-      if (error instanceof AppError) Alert.alert("Novo Grupo", error.message)
+      if (error instanceof AppError) Alert.alert("Nova Turma", error.message)
       else {
-        Alert.alert("Novo Grupo", "Erro ao criar o grupo")
+        Alert.alert("Nova Turma", "Erro ao criar a turma.")
         console.log(error)
       }
     }
